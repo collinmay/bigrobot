@@ -1,0 +1,24 @@
+{
+  "subsystems": [
+    {
+      "name": "Main Drive",
+      "type": "skid steer drive",
+      "left": "drive.left",
+      "right": "drive.right"
+    }
+  ],
+  "adapters": {
+    "drive": {
+      "type": "sabertooth",
+      "connection": "dummy",
+      "outputs": {
+        "M1": "left",
+        "M2": "right"
+      },
+      "battery": {
+        "name": "Main Battery",
+        "full": 24
+      }
+    }
+  }
+}

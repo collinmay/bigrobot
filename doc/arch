@@ -1,0 +1,10 @@
+Driver software locates robot via UDP multicast
+Driver software presents user with list of robots to drive
+User selects robot, robot sends a challenge.
+Driver software encrypts challenge with public key and sends pubkey and challenge back.
+If challenge is valid and pubkey is on list of authorized drivers, robot sends list of subsystems to driver. Subsystems are parts of the robot such as "drive" or "arm". Robot also sends data about who has already bound which subsytems (each subsystem may only be used by one driver)
+User selects which subsytems they wish to bind, driver software sends bind requests.
+If a requested subsystem is not already bound by another driver, the robot will bind the subsystem to the driver and tell the driver that they got the requested subsystem.
+If a requested subsystem is already bound and the received pubkey is on the list of admin drivers, the robot will kick the previous driver and bind the new one.
+The driver software will search for stored controller configurations for each subsystem. The user will be prompted to select a configuration for each subsystem they requested.
+Controller configurations bind buttons and axes on controllers to the inputs each subsystem requires.
