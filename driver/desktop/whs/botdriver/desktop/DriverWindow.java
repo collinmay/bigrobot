@@ -99,8 +99,8 @@ public class DriverWindow extends JFrame {
 						}
 						if(e instanceof SubsystemUpdateEvent) {
 							SubsystemUpdateEvent s = (SubsystemUpdateEvent) e;
-							Subsystem[] subs = s.getSubsystems();
 							SwingUtilities.invokeAndWait(() -> {
+								Subsystem[] subs = s.getSubsystems();
 								System.out.println("EDT? " + SwingUtilities.isEventDispatchThread());
 								mainArea.removeAll();
 								for(int i = 0; i < subs.length; i++) {

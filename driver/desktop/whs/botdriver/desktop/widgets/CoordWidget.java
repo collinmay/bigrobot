@@ -38,10 +38,24 @@ public class CoordWidget extends JComponent {
 		this.repaint();
 	}
 	
+	public void setX(double x) {
+		this.x = x;
+		this.repaint();
+	}
+	
+	public void setY(double y) {
+		this.y = y;
+		this.repaint();
+	}
+	
+	public void setHasJoystick(boolean has) {
+		this.hasJoystick = has;
+		this.repaint();
+	}
+	
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		System.out.println(getWidth() + ", " + getHeight());
 		int sz = Math.min(getWidth(), getHeight());
 		g.setColor(Color.WHITE);
 		g.fillRect(0, 0, sz, sz);
@@ -49,7 +63,7 @@ public class CoordWidget extends JComponent {
 		if(hasJoystick) {
 			g.setColor(Color.BLACK);
 			g.drawOval(0, 0, sz, sz);
-			g.fillRect((int) (x*(sz/2)) + (sz/2), (int) (y*(sz/2)) + (sz/2), 2, 2);
+			g.fillOval((int) (x*(sz/2)) + (sz/2) - 5, (int) (y*(sz/2)) + (sz/2) - 5, 10, 10);
 		} else {
 			g.setColor(Color.RED);
 			String str = "no joystick set";

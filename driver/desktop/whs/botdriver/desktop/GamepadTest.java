@@ -1,24 +1,21 @@
 package whs.botdriver.desktop;
 
-import java.lang.reflect.InvocationTargetException;
-
-import javax.swing.JDialog;
-import javax.swing.SwingUtilities;
-
-import net.java.games.input.Controller;
-import net.java.games.input.ControllerEnvironment;
+import whs.botdriver.desktop.controllers.Joystick;
 
 public class GamepadTest {
 	public static void main(String[] args) {
-		try {
-			SwingUtilities.invokeAndWait(() -> {
-				GamepadDialog d = new GamepadDialog(GamepadDialog.InputType.DUAL_AXIS);
-				d.setVisible(true);
-			});
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		new GamepadDialog().getJoystick(new GamepadDialog.JoystickTarget() {
+			@Override
+			public void gotJoystick(Joystick j) {
+				System.out.println("got joystick");
+				System.exit(0);
+			}
+			
+			@Override
+			public void noJoystick() {
+				System.out.println("no joystick");
+				System.exit(1);
+			}
+		});
 	}
 }
