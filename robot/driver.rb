@@ -1,13 +1,16 @@
 # Author: Collin May
 
 require 'stringio'
+require 'thread'
 
 class Driver
   def initialize(robot, socket)
     @robot = robot
     @socket = socket
-
+    
     @log = $log.sub("[" + @socket.remote_address.ip_address + "] ")
+    @netlog = NetLogger.new(self)
+    $log.add_target @netlog
     
     @input_thread = Thread.new do
       begin
@@ -16,11 +19,21 @@ class Driver
         @log.log_exception e
       ensure
         @log.log "lost connection"
+        unbind_subsystems
+        $log.remove_target @netlog
         @socket.close
       end
     end
+
+    @subsystems = []
   end
 
+  def unbind_subsystems
+    @subsystems.each do |sub|
+      sub.unbind
+    end
+  end
+  
   def recv_str
     len = @socket.read(2).unpack("S>")[0]
     return @socket.read(len)
@@ -57,6 +70,15 @@ class Driver
     end
     write_packet(0x07, [reports.length].pack("S>") + reports.join(String.new))
   end
+
+  def send_subsystem_bind_success(sub)
+    @log.log "bound subsystem " + sub.id.to_s
+    write_packet(0x04, [sub.id].pack("s>"))
+  end
+  
+  def send_subsystem_bind_failiure(sub)
+    write_packet(0x03, [sub.id].pack("s>"))
+  end
   
   def run_input
     while(!@socket.eof) do
@@ -69,16 +91,50 @@ class Driver
       when 0x01 # keep alive
         send_keepalive(@socket.read(8))
       when 0x02 # query subsystems
-        @log.log "got subsystem query"
         send_subsystem_info
         send_battery_info
       when 0x03 # register driver
         @name = recv_str
         @log.prefix = "[#{@name}] "
-        @log.log "received name"
+      when 0x04 # bind subsystem
+        sub = @robot.subsystems[@socket.read(2).unpack("s>")[0]]
+        if sub.attempt_bind(self) then
+          send_subsystem_bind_success sub
+        else
+          send_subsystem_bind_failiure sub
+        end
+      when 0x05 # subsystem update
+        sub = @robot.subsystems[@socket.read(2).unpack("s>")[0]]
+        if sub.driver == self then
+          sub.read @socket
+        else
+          @log.log "tried to update unbound system"
+        end
+      when 0x06 # unbind subsystem
+        sub = @robot.subsystems[@socket.read(2).unpack("s>")[0]]
+        if sub.driver == self then
+          sub.unbind
+        end
+      else
+        @log.log "got unknown 0x" + type.to_s(16) + " packet"
+        @socket.read(size)
       end
     end
   end
 
+  def subsystem_bound(sub)
+    @subsystems.push(sub)
+  end
+
+  class NetLogger
+    def initialize(driver)
+      @driver = driver
+    end
+
+    def log(msg)
+      @driver.write_packet(0x08, @driver.pack_str(msg))
+    end
+  end
+  
   attr_reader :name
 end

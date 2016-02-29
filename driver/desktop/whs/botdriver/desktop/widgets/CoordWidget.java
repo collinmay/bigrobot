@@ -16,26 +16,34 @@ public class CoordWidget extends JComponent {
 	private static final long serialVersionUID = 7318098608102222567L;
 	private double x;
 	private double y;
-	private boolean hasJoystick;
-	private boolean diagonalAxes;
+	private AxisLines axisLines;
+	private Shape shape;
+	private String msg;
 	
 	public CoordWidget() {
-		this(false);
-	}
-	
-	public CoordWidget(boolean diagonalAxes) {
 		super();
 		this.setPreferredSize(new Dimension(200, 200));
 		this.x = 0;
 		this.y = 0;
-		this.hasJoystick = false;
-		this.diagonalAxes = diagonalAxes;
+		this.msg = "";
+		this.axisLines = AxisLines.OFF;
+		this.shape = Shape.CIRCLE;
 	}
 	
 	public void setPos(double x, double y) {
 		this.x = x;
 		this.y = y;
 		this.repaint();
+	}
+	
+	public void setPolar(double t, double r) {
+		this.x = r * Math.cos(t);
+		this.y = r * Math.sin(t);
+		this.repaint();
+	}
+	
+	public void setShape(Shape shape) {
+		this.shape = shape;
 	}
 	
 	public void setX(double x) {
@@ -48,8 +56,12 @@ public class CoordWidget extends JComponent {
 		this.repaint();
 	}
 	
-	public void setHasJoystick(boolean has) {
-		this.hasJoystick = has;
+	public void setAxisLines(AxisLines type) {
+		this.axisLines = type;
+	}
+	
+	public void setMessage(String string) {
+		this.msg = string;
 		this.repaint();
 	}
 	
@@ -60,14 +72,35 @@ public class CoordWidget extends JComponent {
 		g.setColor(Color.WHITE);
 		g.fillRect(0, 0, sz, sz);
 		
-		if(hasJoystick) {
+		if(msg == null || msg.equals("")) {
 			g.setColor(Color.BLACK);
-			g.drawOval(0, 0, sz, sz);
+			
+			switch(axisLines) {
+			case OFF: break;
+			case NORMAL:
+				g.drawLine(0, sz/2, sz, sz/2);
+				g.drawLine(sz/2, 0, sz/2, sz);
+				break;
+			case DIAGONAL:
+				g.drawLine(0, 0, sz, sz);
+				g.drawLine(0, sz, sz, 0);
+				break;
+			}
+			
+			switch(shape) {
+			case OFF: break;
+			case CIRCLE:
+				g.drawOval(0, 0, sz, sz);
+				break;
+			case SQUARE:
+				g.drawRect(0, 0, sz, sz);
+				break;
+			}
+			
 			g.fillOval((int) (x*(sz/2)) + (sz/2) - 5, (int) (y*(sz/2)) + (sz/2) - 5, 10, 10);
 		} else {
 			g.setColor(Color.RED);
-			String str = "no joystick set";
-			g.drawString(str, (sz/2)-(g.getFontMetrics().stringWidth(str)/2), (sz/2)-6);
+			g.drawString(msg, (sz/2)-(g.getFontMetrics().stringWidth(msg)/2), (sz/2)-6);
 		}
 	}
 	
@@ -77,5 +110,13 @@ public class CoordWidget extends JComponent {
 		container.add(new JLabel(label), BorderLayout.NORTH);
 		container.add(w, BorderLayout.CENTER);
 		return container;
+	}
+	
+	public enum AxisLines {
+		OFF, NORMAL, DIAGONAL
+	}
+	
+	public enum Shape {
+		OFF, CIRCLE, SQUARE
 	}
 }

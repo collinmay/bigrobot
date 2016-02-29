@@ -6,6 +6,7 @@ module Subsystems
   module Drive
     class SkidSteer < Subsystem
       def initialize(name)
+        super()
         @name = name
       end
 
@@ -15,6 +16,12 @@ module Subsystems
 
       def numeric_type
         1
+      end
+
+      def read(sock)
+        parts = sock.read(4).unpack("s>s>")
+        left = parts[0]
+        right = parts[1]
       end
       
       attr_reader :name

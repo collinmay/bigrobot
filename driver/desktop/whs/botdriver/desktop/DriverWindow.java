@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -14,6 +16,7 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
+import whs.botdriver.LogEvent;
 import whs.botdriver.Robot;
 import whs.botdriver.RobotKilledException;
 import whs.botdriver.Subsystem;
@@ -21,19 +24,22 @@ import whs.botdriver.desktop.subsystemviews.SubsystemView;
 import whs.botdriver.desktop.widgets.GraphWidget;
 import whs.botdriver.events.Event;
 import whs.botdriver.events.PingEvent;
+import whs.botdriver.events.SubsystemEvent;
 import whs.botdriver.events.SubsystemUpdateEvent;
 
 public class DriverWindow extends JFrame {
 
 	private Robot robot;
-	private JTextArea console;
+	public static JTextArea console;
 	private GraphWidget pingGraph;
 	private JPanel mainArea;
 	private long lastGraphUpdate = System.currentTimeMillis();
+	private Map<Subsystem, SubsystemView> views;
 	
 	public DriverWindow(Robot robot) {
 		super("Driver Window");
 		this.robot = robot;
+		this.views = new HashMap<Subsystem, SubsystemView>();
 		
 		JPanel content = new JPanel();
 		content.setLayout(new BorderLayout());
@@ -55,7 +61,7 @@ public class DriverWindow extends JFrame {
 		status.setBorder(new EmptyBorder(10, 10, 10, 10));
 		content.add(status, BorderLayout.WEST);
 		
-		console = new JTextArea(20, 50);
+		console = new JTextArea(20, 80);
 		console.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 		console.setEditable(false);
 		console.append("Ready.\n");
@@ -97,22 +103,32 @@ public class DriverWindow extends JFrame {
 							pingGraph.push(0, p.pingTime());
 							this.lastGraphUpdate = System.currentTimeMillis();
 						}
+						if(e instanceof SubsystemEvent) {
+							SubsystemEvent s = (SubsystemEvent) e;
+							views.get(s.getSubsystem()).handleEvent(s);
+						}
 						if(e instanceof SubsystemUpdateEvent) {
 							SubsystemUpdateEvent s = (SubsystemUpdateEvent) e;
 							SwingUtilities.invokeAndWait(() -> {
 								Subsystem[] subs = s.getSubsystems();
 								System.out.println("EDT? " + SwingUtilities.isEventDispatchThread());
 								mainArea.removeAll();
+								views.clear();
 								for(int i = 0; i < subs.length; i++) {
 									JPanel frame = new JPanel();
 									frame.setBorder(new EmptyBorder(10, 10, 10, 10));
 									frame.setBackground(new Color(80, 80, 80));
 									frame.setLayout(new BorderLayout());
-									frame.add(SubsystemView.createView(subs[i]), BorderLayout.CENTER);
+									SubsystemView view = SubsystemView.createView(subs[i]);
+									frame.add(view, BorderLayout.CENTER);
+									views.put(subs[i], view);
 
 									mainArea.add(frame);
 								}
 							});
+						}
+						if(e instanceof LogEvent) {
+							console.append(((LogEvent) e).getMessage() + "\n");
 						}
 					}
 					try {

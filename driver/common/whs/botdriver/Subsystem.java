@@ -1,41 +1,18 @@
 package whs.botdriver;
 
-import java.nio.ByteBuffer;
-
-import whs.botdriver.subsystems.SkidSteerDriveSystem;
+import whs.botdriver.events.SubsystemEvent;
 
 public abstract class Subsystem {
-	
 	private int id;
 	private String name;
 	private String driver;
+	private Robot robot;
 	
-	protected Subsystem(int id, String name, String driver) {
+	protected Subsystem(Robot robot, int id, String name, String driver) {
 		this.id = id;
 		this.name = name;
 		this.driver = driver;
-	}
-	
-	public static Subsystem read(int id, ByteBuffer buffer) {
-		int type = buffer.get();
-		
-		int name_len = buffer.getShort();
-		byte[] name_bytes = new byte[name_len];
-		buffer.get(name_bytes);
-		String name = new String(name_bytes);
-		
-		int driver_len = buffer.getShort();
-		byte[] driver_bytes = new byte[driver_len];
-		buffer.get(driver_bytes);
-		String driver = new String(driver_bytes);
-		
-		switch(type) {
-		case 0:
-			return null; //invalid subsystem
-		case 1:
-			return new SkidSteerDriveSystem(id, name, driver);
-		}
-		return null;
+		this.robot = robot;
 	}
 	
 	public int getId() {
@@ -48,5 +25,23 @@ public abstract class Subsystem {
 	
 	public String getDriver() {
 		return driver;
+	}
+
+	public void attemptBind() {
+		this.robot.bindSubsystem(this);
+	}
+
+	public void unbind() {
+		this.robot.unbindSubsystem(this);
+	}
+	
+	public synchronized void pushEvent(SubsystemEvent evt) {
+		this.notifyAll();
+		this.robot.pushEvent(evt);
+	}
+	
+	@Override
+	public int hashCode() {
+		return id;
 	}
 }

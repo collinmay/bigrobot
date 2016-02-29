@@ -50,6 +50,14 @@ class TimeLogger < Logger
     @targets = targets
     @fmt = fmt
   end
+
+  def add_target(tgt)
+    @targets.push tgt
+  end
+
+  def remove_target(tgt)
+    @targets.delete tgt
+  end
   
   def log(msg)
     prefix = Time.now.strftime(@fmt)

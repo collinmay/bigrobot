@@ -11,6 +11,8 @@ import java.util.concurrent.Semaphore;
 
 import whs.botdriver.events.Event;
 import whs.botdriver.events.PingEvent;
+import whs.botdriver.events.SubsystemBindFailiureEvent;
+import whs.botdriver.events.SubsystemBindSuccessEvent;
 import whs.botdriver.events.SubsystemUpdateEvent;
 
 public class NetRobot implements Robot {
@@ -46,7 +48,7 @@ public class NetRobot implements Robot {
 		
 		this.outBuffer = ByteBuffer.allocate(4096);
 		this.inBuffer = ByteBuffer.allocate(4096);
-		this.headBuffer = ByteBuffer.allocate(3);
+		this.headBuffer = ByteBuffer.allocate(5);
 		this.outMutex = new Semaphore(1);
 		this.currentPacketLength = -1;
 				
@@ -92,7 +94,8 @@ public class NetRobot implements Robot {
 		return lastPacketTime;
 	}
 	
-	private synchronized void pushEvent(Event e) {
+	@Override
+	public synchronized void pushEvent(Event e) {
 		queue.add(e);
 		this.notifyAll();
 	}
@@ -121,14 +124,46 @@ public class NetRobot implements Robot {
 		}
 	}
 	
-	public void querySubsystems() {
+	public void sendSubsystemPacket(Subsystem subsystem, ByteBuffer buf) {
+		try {
+			this.outMutex.acquire();
+			buf.flip();
+			this.headBuffer.putShort((short) (buf.limit() + 2));
+			this.headBuffer.put((byte) 5);
+			this.headBuffer.putShort((short) subsystem.getId());
+			this.headBuffer.flip();
+
+			while(this.headBuffer.hasRemaining()) { this.socket.write(this.headBuffer); }
+			while(            buf.hasRemaining()) { this.socket.write(buf);             }
+
+			this.headBuffer.clear();
+			buf.clear();
+		} catch(Exception e) {
+			kill(e);
+		} finally {
+			this.outMutex.release();
+		}
+	}
+	
+	public synchronized void querySubsystems() {
 		sendPacket(2);
 	}
 	
-	public void registerDriver(String name) {
+	public synchronized void registerDriver(String name) {
 		this.outBuffer.putShort((short) name.length());
 		this.outBuffer.put(name.getBytes());
 		sendPacket(3);
+	}
+	
+	public synchronized void bindSubsystem(Subsystem sub) {
+		this.outBuffer.putShort((short) sub.getId());
+		sendPacket(4);
+	}
+	
+	
+	public synchronized void unbindSubsystem(Subsystem sub) {
+		this.outBuffer.putShort((short) sub.getId());
+		sendPacket(6);
 	}
 	
 	public void dispose() {
@@ -173,13 +208,30 @@ public class NetRobot implements Robot {
 						int num_subsystems = inBuffer.getShort();
 						Subsystem[] subsystems = new Subsystem[num_subsystems];
 						
+						System.out.println("Read subsystems");
 						for(int i = 0; i < num_subsystems; i++) {
-							subsystems[i] = Subsystem.read(i, inBuffer);
+							subsystems[i] = NetSubsystem.read(this, i, inBuffer);
+							System.out.println("Read subsystem " + subsystems[i].getName());
 						}
 						
 						this.subsystems = subsystems;
 						this.pushEvent(new SubsystemUpdateEvent(this.subsystems));
 					}
+					break;
+				case 3: { // Subsystem Bind Failiure
+					Subsystem sub = subsystems[inBuffer.getShort()];
+					sub.pushEvent(new SubsystemBindFailiureEvent(sub));
+					break; }
+				case 4: { // Subsystem Bind Success
+					Subsystem sub = subsystems[inBuffer.getShort()];
+					sub.pushEvent(new SubsystemBindSuccessEvent(sub));
+					break; }
+				case 8: // Log Message
+					int len = inBuffer.getShort();
+					byte[] bytes = new byte[len];
+					inBuffer.get(bytes);
+					String msg = new String(bytes);
+					this.pushEvent(new LogEvent(msg));
 					break;
 				default:
 					System.out.println("Got unknown packet 0x" + Integer.toHexString(type) + " length 0x" + Integer.toHexString(this.currentPacketLength)); break;

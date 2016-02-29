@@ -61,10 +61,10 @@ The TCP steam contains a sequence of packets. The first two bytes of a packet in
 
 #### 0x05: Subsystem Update
 
-    uint8 type; //type of the subsystem being updated
-    uint16 token; //the token received from the R->D 0x04 (Subsystem Bind Success) packet
+    uint16 id; //the id of the subsystem being updated
+    byte[] data;
 
-  The rest of the packet depends upon the type of subsystem being updated. If a driver tries to update a subsystem that they do not have bound, the token is bad, or the type doesn't match the token, the packet is silently ignored.
+  The rest of the packet depends upon the type of subsystem being updated. If a driver tries to update a subsystem that they do not have bound, or the specified subsystem does not exist, the packet is silently ignored.
   
 ##### 0x01: Skid Steer Drive
 
@@ -76,6 +76,10 @@ The TCP steam contains a sequence of packets. The first two bytes of a packet in
 ##### 0x02: Light
 
     uint8; //0: off, 1: on
+
+#### 0x06: Unbind Subsytem
+
+    uint16 id; //the id of the subsystem being unbound
 
 ## Robot -> Driver Packets
 
@@ -106,7 +110,6 @@ The TCP steam contains a sequence of packets. The first two bytes of a packet in
 #### 0x04: Subsystem Bind Success
  
     uint16 subsystem; //the subsystem that got bound
-    uint16 token; //a token to represent this binding
     
   Sent when a driver's subsystem bind request is accepted.
   
@@ -151,3 +154,7 @@ The TCP steam contains a sequence of packets. The first two bytes of a packet in
     }
     
   List of batteries installed on the robot, sent to every driver when they request the list of subsystems.
+
+#### 0x08: Log Message
+
+    string message;

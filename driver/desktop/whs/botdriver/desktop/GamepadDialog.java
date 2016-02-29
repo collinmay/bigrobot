@@ -93,7 +93,6 @@ public class GamepadDialog extends JDialog implements WindowListener {
 			
 			for(int i = 0; i < joysticks.length; i++) {
 				coordWidgets[i] = new CoordWidget();
-				coordWidgets[i].setHasJoystick(true);
 				
 				final Joystick j = joysticks[i];
 				
