@@ -1,0 +1,5 @@
+.subsystem_frame {
+    -fx-border-radius: 10px 10px 10px 10px;
+    -fx-border-width: 0px;
+    -fx-background-color: #E7E7E7;
+}

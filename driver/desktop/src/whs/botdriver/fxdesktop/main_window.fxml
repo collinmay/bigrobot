@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.*?>
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.input.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.layout.*?>
+<?import java.net.URL?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="777.0" prefWidth="1027.0" xmlns="http://javafx.com/javafx/8.0.92" xmlns:fx="http://javafx.com/fxml/1" fx:controller="whs.botdriver.fxdesktop.MainWindowController">
+    <top>
+        <MenuBar BorderPane.alignment="CENTER">
+            <menus>
+                <Menu fx:id="robotMenu" mnemonicParsing="false" text="Robot">
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#directTcpConnect" text="TCP Direct...">
+                            <accelerator>
+                                <KeyCodeCombination alt="UP" code="D" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                            </accelerator>
+                        </MenuItem>
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+    </top>
+    <bottom>
+        <Pane BorderPane.alignment="CENTER">
+            <children>
+                <Label fx:id="status" text="Not connected.">
+                    <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                    </padding>
+                </Label>
+            </children>
+        </Pane>
+    </bottom>
+    <center>
+        <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="ALWAYS" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" vbarPolicy="ALWAYS" BorderPane.alignment="CENTER">
+            <content>
+                <VBox id="main_vbox" fx:id="mainContainer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+               <padding>
+                  <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+               </padding></VBox>
+            </content>
+        </ScrollPane>
+    </center>
+    <left>
+        <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" BorderPane.alignment="CENTER">
+            <content>
+                <VBox prefHeight="200.0" prefWidth="100.0" />
+            </content>
+        </ScrollPane>
+    </left>
+    <right>
+        <ScrollPane fitToHeight="true" maxHeight="1.7976931348623157E308" BorderPane.alignment="CENTER">
+            <content>
+                <ListView fx:id="console" prefHeight="200.0" prefWidth="200.0" />
+            </content>
+        </ScrollPane>
+    </right>
+
+    <stylesheets>
+        <URL value="@main_window.css" />
+    </stylesheets>
+</BorderPane>

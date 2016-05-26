@@ -1,0 +1,21 @@
+<component name="libraryTable">
+  <library name="net.java.jinput:jinput:2.0.6" type="repository">
+    <properties maven-id="net.java.jinput:jinput:2.0.6" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/net/java/jinput/jinput/2.0.6/jinput-2.0.6.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/net/java/jutils/jutils/1.0.0/jutils-1.0.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/net/java/jinput/jinput-platform/2.0.6/jinput-platform-2.0.6-natives-linux.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/net/java/jinput/jinput-platform/2.0.6/jinput-platform-2.0.6-natives-windows.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/net/java/jinput/jinput-platform/2.0.6/jinput-platform-2.0.6-natives-osx.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/net/java/jinput/jinput/2.0.6/jinput-2.0.6-javadoc.jar!/" />
+    </JAVADOC>
+    <NATIVE>
+      <root url="file://$PROJECT_DIR$/desktop/natives" />
+    </NATIVE>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/net/java/jinput/jinput/2.0.6/jinput-2.0.6-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

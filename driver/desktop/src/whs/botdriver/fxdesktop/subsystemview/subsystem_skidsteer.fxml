@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="602.0" prefWidth="954.0" xmlns="http://javafx.com/javafx/8.0.92" xmlns:fx="http://javafx.com/fxml/1">
+    <center>
+        <TabPane fx:id="tabPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+            <tabs>
+                <Tab text="Intuitive Controls">
+                    <content>
+                        <GridPane maxWidth="1.7976931348623157E308">
+                            <columnConstraints>
+                                <ColumnConstraints fillWidth="false" hgrow="SOMETIMES" percentWidth="5.0" />
+                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="47.5" />
+                                <ColumnConstraints hgrow="SOMETIMES" percentWidth="47.5" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            </rowConstraints>
+                            <children>
+                                <ComboBox onAction="#xControllerSet" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.hgrow="NEVER" GridPane.rowIndex="1" fx:id="xControllerBox" />
+                                <Label text="X" GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                                    <GridPane.margin>
+                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                    </GridPane.margin>
+                                </Label>
+                                <Label text="Y" GridPane.halignment="CENTER" GridPane.rowIndex="2">
+                                    <GridPane.margin>
+                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                    </GridPane.margin>
+                                </Label>
+                                <ComboBox onAction="#yControllerSet" fx:id="yControllerBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="NEVER" GridPane.rowIndex="2" />
+                                <ComboBox onAction="#xAxisSet" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" fx:id="xAxisBox" />
+                                <ComboBox onAction="#yAxisSet" fx:id="yAxisBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+                                <Label text="Controller" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                                <Label alignment="CENTER" text="Axis" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                            </children>
+                        </GridPane>
+                    </content>
+                </Tab>
+                <Tab text="Tank Controls">
+                    <content>
+                        <GridPane maxWidth="1.7976931348623157E308">
+                            <columnConstraints>
+                                <ColumnConstraints fillWidth="false" hgrow="SOMETIMES" percentWidth="5.0" />
+                                <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="47.5" />
+                                <ColumnConstraints hgrow="SOMETIMES" percentWidth="47.5" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                <RowConstraints fillHeight="false" minHeight="10.0" prefHeight="30.0" vgrow="NEVER" />
+                                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                            </rowConstraints>
+                            <children>
+                                <ComboBox onAction="#lControllerSet" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.hgrow="NEVER" GridPane.rowIndex="1" fx:id="lControllerBox" />
+                                <Label text="Left" GridPane.halignment="CENTER" GridPane.rowIndex="1">
+                                    <GridPane.margin>
+                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                    </GridPane.margin>
+                                </Label>
+                                <Label text="Right" GridPane.halignment="CENTER" GridPane.rowIndex="2">
+                                    <GridPane.margin>
+                                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                    </GridPane.margin>
+                                </Label>
+                                <ComboBox onAction="#rControllerSet" fx:id="rControllerBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="NEVER" GridPane.rowIndex="2" />
+                                <ComboBox onAction="#lAxisSet" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" fx:id="lAxisBox" />
+                                <ComboBox onAction="#rAxisSet" fx:id="rAxisBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+                                <Label text="Controller" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                                <Label alignment="CENTER" text="Axis" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                            </children>
+                        </GridPane>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+    <right>
+        <BarChart fx:id="chart" title="Motor Power">
+            <xAxis>
+                <CategoryAxis />
+            </xAxis>
+            <yAxis>
+                <NumberAxis autoRanging="false" lowerBound="-1.0" upperBound="1.0" side="LEFT" tickUnit="0.20" />
+            </yAxis>
+        </BarChart>
+    </right>
+</BorderPane>

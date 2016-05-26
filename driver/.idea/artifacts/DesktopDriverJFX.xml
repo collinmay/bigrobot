@@ -1,0 +1,22 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" build-on-make="true" name="DesktopDriverJFX">
+    <output-path>$PROJECT_DIR$/out/artifacts/DesktopDriverJFX</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="whs.botdriver.fxdesktop.Main" />
+        <option name="description" value="" />
+        <option name="htmlParamFile" value="" />
+        <option name="paramFile" value="" />
+        <option name="title" value="WHS Bot Driver" />
+        <option name="vendor" value="" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="archive" name="desktop.jar">
+        <element id="module-output" name="desktop" />
+        <element id="module-output" name="common" />
+        <element id="library" level="project" name="net.java.jinput:jinput:2.0.6" />
+      </element>
+    </root>
+  </artifact>
+</component>
