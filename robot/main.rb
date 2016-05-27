@@ -12,13 +12,33 @@ require_relative 'adapter/sabertooth.rb'
 
 require_relative 'drive/skidsteer.rb'
 
-SABERTOOTH_PORT = ARGV[0] || "/dev/ttyACM0"
+$config = {}
+
+$config[:SABERTOOTH_PORT] = "/dev/ttyACM0"
+$config[:MULTICAST_IFACE] = "10.0.7.1"
+
+arg_no = 0
+while ARGV.length > 0 do
+  arg = ARGV.shift
+  if arg[0, 2] == "--" then
+    if arg == "--dev" then
+      $config[:SABERTOOTH_PORT] = "/dev/null"
+      $config[:MULTICAST_IFACE] = "0.0.0.0"
+    else
+      $log.log "Unknown option: " + arg
+    end
+  else
+    $log.log "Too many arguments"
+    exit 1
+    arg_no+= 1
+  end
+end
 
 $log.log "Starting up..."
 
-$log.log "Opening sabertooth on " + SABERTOOTH_PORT
+$log.log "Opening sabertooth on " + $config[:SABERTOOTH_PORT]
 
-SABERTOOTH_IO = File.open(SABERTOOTH_PORT, "r+b")
+SABERTOOTH_IO = File.open($config[:SABERTOOTH_PORT], "r+b")
 
 $log.log "RUID: " + Process.uid.to_s + " EUID: " + Process.euid.to_s
 
@@ -44,11 +64,12 @@ if Process.uid == 0 || Process.euid == 0 then
     $log.log_exception e
   end
 else
+  $log.log "Not running as root, not attempting privilege drop"
   begin
     Process::Sys.setuid(0)
   rescue Errno::EPERM
   else
-    $log.log "Can escalate to root"
+    $log.log "Can escalate privileges to root level?"
     exit 1
   end
 end
@@ -56,55 +77,15 @@ end
 begin
   $robot = Robot.new
   
-=begin
-  $log.log "Loading config..."
-  config_hash = JSON.parse(File.read("config.json"))
-  
-  $robot.adapters = Hash.new
-  
-  if config_hash.has_key? "adapters" then
-    config_hash["adapters"].each do |name, adapter_hash|
-      if !adapter_hash.has_key? "type" then
-        throw "adapter declaration has no type"
-      end
-      case adapter_hash["type"]
-      when "sabertooth"
-        $robot.add_adapter(name, Adapters::Sabertooth.from_json(adapter_hash))
-      else
-        throw "unknown adapter type '" + adapter_hash["type"] + "'"
-      end
-    end
-  end
-  
-  if config_hash.has_key? "subsystems" then
-    config_hash["subsystems"].each do |sub_hash|
-      if !sub_hash.has_key? "name" then
-        throw "subsystem declaration has no name"
-      end
-      if !sub_hash.has_key? "type" then
-        throw "subsystem declaration has no type"
-      end
-      case sub_hash["type"]
-      when "skid steer drive"
-        $robot.add_subsystem Subsystems::Drive::SkidSteer.from_json($robot, sub_hash)
-      else
-        throw "unknown subsystem type '" + sub_hash["type"] + "'"
-      end
-    end
-  end
-=end
-
   sabertooth = Adapters::Sabertooth.new(Adapters::Sabertooth::Connections::TextConnection.new(SABERTOOTH_IO))
   $robot.add_adapter("sabertooth", sabertooth)
   drive = Subsystems::Drive::SkidSteer.new("Main Drive", sabertooth.m2, sabertooth.m1)
   $robot.add_subsystem drive
   
   discovery_sock = UDPSocket.new
-  discovery_group = IPAddr.new("238.160.102.2").hton + IPAddr.new("0.0.0.0").hton
-  discovery_group_wlan = IPAddr.new("238.160.102.2").hton + IPAddr.new("10.0.7.1").hton
+  discovery_group = IPAddr.new("238.160.102.2").hton + IPAddr.new($config[:MULTICAST_IFACE]).hton
   
-  #discovery_sock.setsockopt(:IPPROTO_IP, :IP_ADD_MEMBERSHIP, discovery_group)
-  discovery_sock.setsockopt(:IPPROTO_IP, :IP_ADD_MEMBERSHIP, discovery_group_wlan)
+  discovery_sock.setsockopt(:IPPROTO_IP, :IP_ADD_MEMBERSHIP, discovery_group)
   discovery_sock.bind("0.0.0.0", 25601)
   
   discovery_thread = Thread.new do

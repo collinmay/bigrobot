@@ -79,7 +79,6 @@ module Adapters
 
         def set(addr, type, num, val, flags)
           @io.puts type + num.to_s + ": " + (val*2047).floor.to_s
-          puts "write update"
         end
       end
 
