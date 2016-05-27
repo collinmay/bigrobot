@@ -18,9 +18,9 @@ class Driver
       rescue => e
         @log.log_exception e
       ensure
+        $log.remove_target @netlog
         @log.log "lost connection"
         unbind_subsystems
-        $log.remove_target @netlog
         @socket.close
       end
     end
@@ -31,6 +31,12 @@ class Driver
   def unbind_subsystems
     @subsystems.each do |sub|
       sub.unbind
+    end
+  end
+
+  def safe_mode
+    @subsystems.each do |sub|
+      sub.safe_mode
     end
   end
   
@@ -89,7 +95,11 @@ class Driver
       when 0x00
         @log.log "got invalid 0x00 packet"
       when 0x01 # keep alive
-        send_keepalive(@socket.read(8))
+        time = @socket.read(8)
+        if Time.now.to_f * 1000.0 - time.unpack("q>")[0] > 2000.0 then
+          safe_mode
+        end
+        send_keepalive(time)
       when 0x02 # query subsystems
         send_subsystem_info
         send_battery_info
@@ -133,6 +143,7 @@ class Driver
 
     def log(msg)
       @driver.write_packet(0x08, @driver.pack_str(msg))
+    rescue
     end
   end
   
