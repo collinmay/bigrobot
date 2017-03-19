@@ -7,6 +7,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.VBox;
 import whs.botdriver.LogEvent;
 import whs.botdriver.Robot;
@@ -47,6 +48,10 @@ public class MainWindowController implements RobotConnector.ConnectionListener, 
   private SubsystemPane subsystemPanes[];
 
   private TcpConnectDialog tcpConnectDialog = new TcpConnectDialog();
+
+
+  @FXML private MenuItem firmwareVersionMenuItem;
+  @FXML private MenuItem upgradeFirmwareMenuItem;
 
   public void initialize(Parent root) {
     this.robotConnector = new RobotConnector(status, this, this);
@@ -104,6 +109,16 @@ public class MainWindowController implements RobotConnector.ConnectionListener, 
         e1.printStackTrace();
       }
     }
+  }
+
+  @FXML
+  public void showFirmwareVersion(ActionEvent e) {
+
+  }
+
+  @FXML
+  public void upgradeFirmware(ActionEvent e) {
+
   }
 
   @Override

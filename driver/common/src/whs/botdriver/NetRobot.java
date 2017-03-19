@@ -76,7 +76,7 @@ public class NetRobot implements Robot {
               }
             }
           }
-          Thread.sleep(50);
+          Thread.sleep(10);
         }
       } catch(InterruptedException e) {
       } catch(Exception e) {
@@ -265,6 +265,9 @@ public class NetRobot implements Robot {
             Subsystem sub = subsystems[inBuffer.getShort()];
             sub.pushEvent(new SubsystemBindSuccessEvent(sub));
             break;
+          }
+          case 5: { // Battery Update
+
           }
           case 8: // Log Message
             int len = inBuffer.getShort();

@@ -22,7 +22,7 @@ public interface NetSubsystem extends Subsystem {
       case 0:
         return null; //invalid subsystem
       case 1:
-        return new SkidSteerDriveNetSystem(robot, id, name, driver);
+        return new SkidSteerDriveNetSystem(robot, id, name, driver, buffer);
     }
     return null;
   }

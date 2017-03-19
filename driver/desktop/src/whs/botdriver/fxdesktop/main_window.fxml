@@ -14,7 +14,7 @@
     <top>
         <MenuBar BorderPane.alignment="CENTER">
             <menus>
-                <Menu fx:id="robotMenu" mnemonicParsing="false" text="Robot">
+                <Menu fx:id="robotMenu" mnemonicParsing="false" text="Connect">
                     <items>
                         <MenuItem mnemonicParsing="false" onAction="#directTcpConnect" text="TCP Direct...">
                             <accelerator>
@@ -23,6 +23,16 @@
                         </MenuItem>
                     </items>
                 </Menu>
+            <Menu mnemonicParsing="false" text="Firmware">
+              <items>
+                  <MenuItem fx:id="firmwareVersionMenuItem" mnemonicParsing="false" onAction="#showFirmwareVersion" text="Firmware Version..." />
+                <MenuItem fx:id="upgradeFirmwareMenuItem" mnemonicParsing="false" onAction="#upgradeFirmware" text="Upgrade Firmware...">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="F" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+              </items>
+            </Menu>
             </menus>
         </MenuBar>
     </top>

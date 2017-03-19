@@ -14,7 +14,7 @@ public class SkidSteerDriveNetSystem extends SkidSteerDriveSystem implements Net
   private double outL = 0;
   private double outR = 0;
 
-  public SkidSteerDriveNetSystem(NetRobot robot, int id, String name, String driver) {
+  public SkidSteerDriveNetSystem(NetRobot robot, int id, String name, String driver, ByteBuffer buffer) {
     super(robot, id, name, driver);
     this.netbot = robot;
     this.outBuffer = ByteBuffer.allocate(4);

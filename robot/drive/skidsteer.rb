@@ -13,7 +13,6 @@ module Subsystems
       end
 
       def self.from_json(robot, hash)
-
         if !hash["left"] then
           throw "no left motor specified"
         end
@@ -29,6 +28,14 @@ module Subsystems
 
       def numeric_type
         1
+      end
+
+      def pack_metadata
+        ([@left_motor, @right_motor].map do |motor|
+          ([:battery, :temperature, :current, :pwm].map do |sensor|
+            next motor.sensors[sensor].id
+          end).pack("S>*")
+        end).join(String.new)
       end
 
       def read(sock)

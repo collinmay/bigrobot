@@ -12,6 +12,9 @@ require_relative 'adapter/sabertooth.rb'
 
 require_relative 'drive/skidsteer.rb'
 
+$VERSION = "1.2"
+$PROTOCOL_VERSION = 2
+
 $config = {}
 
 $config[:SABERTOOTH_PORT] = "/dev/ttyACM0"
@@ -100,13 +103,12 @@ begin
   $log.log "Launched discovery server thread"
   
   server = TCPServer.new 25600
-  drivers = []
 
   $log.log "Accepting connections..."
   loop do
     sock = server.accept
     $log.log "Accepted connection from " + sock.remote_address.ip_address
-    drivers.push(Driver.new($robot, sock))
+    $robot.drivers.push(Driver.new($robot, sock))
   end
 rescue => e
   begin

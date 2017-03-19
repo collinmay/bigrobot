@@ -88,6 +88,7 @@ The TCP steam contains a sequence of packets. The first two bytes of a packet in
     long time; //timestamp in milliseconds of when original packet was sent
 
   Used to make sure the connection is still alive
+  
 #### 0x02: Subsystem Info
 
     uint16	length; //length of following array
@@ -97,6 +98,25 @@ The TCP steam contains a sequence of packets. The first two bytes of a packet in
       uint8 type; // 0: invalid, 1: skid steer drive, 2: lights
       string name;
       string driver; //name of the current driver. empty string if the subsystem is not bound
+
+      union {
+        struct {
+          struct {
+            uint16 battery_sensor;
+            uint16 temperature_sensor;
+            uint16 current_sensor;
+            uint16 pwm_sensor;
+          } left,
+          struct {
+            uint16 battery_sensor;
+            uint16 temperature_sensor;
+            uint16 current_sensor;
+            uint16 pwm_sensor;
+          } right
+        } skidsteer,
+        struct {
+        } lights
+      };
     }
 
   Used to tell the driver software which subsystems are available for binding
@@ -113,48 +133,69 @@ The TCP steam contains a sequence of packets. The first two bytes of a packet in
     
   Sent when a driver's subsystem bind request is accepted.
   
-#### 0x05: Battery Update
+#### 0x05: Sensor Update
 
-    uint16 length; //number of batteries in the robot
-    int16 charge[length]; //array of battery charges in millivolts
+    uint16 length; //number of sensors to update
+    sensor_update_t updates[length];
+    
+    struct sensor_update_t {
+      uint16 id; //index of sensor in 0x07 sensor list
+      union {
+        struct {
+          int32 voltage; //in millivolts
+        } battery,
+        struct {
+          int32 value; //in hundredths of a degree celsius
+        } thermometer,
+        struct {
+          int32 value; //in milliamps
+        } ammeter,
+        struct {
+          int32 value; //from -2048 to 2048
+        } motor_pwm
+      } value;
+    }
     
   Sent to each driver every few seconds.
   
-#### 0x06: Subsystem Update
+#### 0x06: Subsystem Bound
 
-    uint8 type; //type of subsystem
-    uint16 id; //index of subsystem in 0x02 packet list
+    uint16 id; // id of subsystem being bound
+    string driver; // who just bound it. empty string if it was just unbound
 
- The rest of the packet depends upon the type of the subsystem.
- 
-##### 0x01: Skid Steer Drive
- 
-    int16 left_current; // current draw from left motor in amps
-    int16 left_temperature; // temperature of left driver in degrees celsius
-    int16 right_current; //current draw from right motor in amps
-    int16 right_temperature; // temperature of right driver in degrees celsius
+#### 0x07: Sensor Info
+
+    uint16 length; //number of sensors, length of following array
+    sensor_t sensors[length];
     
-  Sent to each driver a few times per second.
-  
-##### 0x02: Lights
-
-    int16 current; // current draw from lamp
-    int16 temperature; // temperature of the driver in degrees celsius
-    
-  Sent to each driver about once per second
-#### 0x07: Battery Info
-
-    uint16 length; //number of batteries, length of following array
-    battery_t batteries[length];
-    
-    struct battery_t {
-      int16 full_voltage; // millivolts
-      int16 current_voltage; // millivolts
+    struct sensor_t {
+      int16 type; // 0: null, 1: battery, 2: thermometer, 3: ammeter, 4: motor_pwm
       string name;
+      union {
+        struct {
+          int32 full_voltage; //millivolts
+          int32 current_voltage; //millivolts
+        }  battery,
+        struct {
+          int32 current_temperature; //in hundreths of a degree Celsius
+        } thermometer,
+        struct {
+          int32 current_current; //in milliamps
+        } ammeter,
+        struct {
+          int32 value; // from -2048 to 2048
+        } motor_pwm //just feedback to the driver so he knows his controls are being acknowledged
+      };
     }
     
-  List of batteries installed on the robot, sent to every driver when they request the list of subsystems.
+  List of sensors on the robot. Sent when the list of subsystems is requested.
 
 #### 0x08: Log Message
 
     string message;
+
+#### 0x09: Firmware Information
+
+    string type; // usually either 'robotd' or 'android'
+    string version;
+    uint16 protocol_version; // currently '2'

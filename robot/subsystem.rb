@@ -10,7 +10,9 @@ module Subsystems
     def attempt_bind(driver)
       if @driver == nil then
         @driver = driver
-        @driver.subsystem_bound(self)
+        $robot.drivers.each do |d|
+          d.subsystem_bound(self, driver)
+        end
         return true
       else
         return false

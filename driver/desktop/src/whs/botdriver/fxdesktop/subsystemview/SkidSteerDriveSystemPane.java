@@ -1,20 +1,19 @@
 package whs.botdriver.fxdesktop.subsystemview;
 
-import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.BooleanProperty;
+import javafx.beans.binding.DoubleExpression;
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.ReadOnlyListWrapper;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.beans.value.WeakChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TabPane;
 import whs.botdriver.Motor;
@@ -22,8 +21,8 @@ import whs.botdriver.events.SkidSteerSystemUpdateEvent;
 import whs.botdriver.events.SubsystemEvent;
 import whs.botdriver.fxdesktop.WComponent;
 import whs.botdriver.fxdesktop.WComponentCell;
-import whs.botdriver.fxdesktop.WControllerCell;
 import whs.botdriver.fxdesktop.WController;
+import whs.botdriver.fxdesktop.WControllerCell;
 import whs.botdriver.subsystems.SkidSteerDriveSystem;
 
 import java.io.IOException;
@@ -53,28 +52,31 @@ public class SkidSteerDriveSystemPane extends SubsystemPane {
   @FXML private ComboBox<WComponent> lAxisBox;
   @FXML private ComboBox<WComponent> rAxisBox;
 
-
+  @FXML private CheckBox lReverse;
+  @FXML private CheckBox rReverse;
+  @FXML private CheckBox xReverse;
+  @FXML private CheckBox yReverse;
 
   private WComponent xAxisComponent;
   private WComponent yAxisComponent;
 
   private DoubleProperty xAxisProperty;
   private DoubleProperty yAxisProperty;
-
+  private DoubleExpression xAxisDeadZoner;
+  private DoubleExpression yAxisDeadZoner;
   private DoubleProperty leftIntuitiveProperty;
   private DoubleProperty rightIntuitiveProperty;
 
 
   private WComponent lAxisComponent;
   private WComponent rAxisComponent;
+  private DoubleProperty leftTankProperty;
+  private DoubleProperty rightTankProperty;
+  private DoubleExpression leftTankDeadZoner;
+  private DoubleExpression rightTankDeadZoner;
 
-  private DoubleProperty lAxisProperty;
-  private DoubleProperty rAxisProperty;
-
-
-
-  private DoubleProperty leftProperty;
-  private DoubleProperty rightProperty;
+  private DoubleProperty leftOutputProperty;
+  private DoubleProperty rightOutputProperty;
 
   @FXML private TabPane tabPane;
 
@@ -107,29 +109,35 @@ public class SkidSteerDriveSystemPane extends SubsystemPane {
     this.xAxisProperty = new SimpleDoubleProperty();
     this.yAxisProperty = new SimpleDoubleProperty();
 
+    this.xAxisDeadZoner = createDeadzoner(xAxisProperty);
+    this.yAxisDeadZoner = createDeadzoner(yAxisProperty);
+
     this.leftIntuitiveProperty = new SimpleDoubleProperty();
     this.rightIntuitiveProperty = new SimpleDoubleProperty();
 
-    this.lAxisProperty = new SimpleDoubleProperty();
-    this.rAxisProperty = new SimpleDoubleProperty();
+    this.leftTankProperty = new SimpleDoubleProperty();
+    this.rightTankProperty = new SimpleDoubleProperty();
 
-    this.leftProperty = new SimpleDoubleProperty();
-    this.rightProperty = new SimpleDoubleProperty();
+    this.leftTankDeadZoner = createDeadzoner(leftTankProperty);
+    this.rightTankDeadZoner = createDeadzoner(rightTankProperty);
+
+    this.leftOutputProperty = new SimpleDoubleProperty();
+    this.rightOutputProperty = new SimpleDoubleProperty();
 
     ChangeListener<? super Number> outListener = (o, old_val, new_val) -> {
-      subsystem.setPower(leftProperty.getValue(), rightProperty.getValue());
+      subsystem.setPower(leftOutputProperty.getValue(), rightOutputProperty.getValue());
     };
 
-    leftProperty.addListener(outListener);
-    rightProperty.addListener(outListener);
+    leftOutputProperty.addListener(outListener);
+    rightOutputProperty.addListener(outListener);
 
     ChangeListener<? super Number> listener = (observable, oldValue, newValue) -> {
-      if(xAxisProperty.getValue() == 0 && yAxisProperty.getValue() == 0) {
+      if(xAxisDeadZoner.getValue() == 0 && yAxisDeadZoner.getValue() == 0) {
         leftIntuitiveProperty.setValue(0);
         rightIntuitiveProperty.setValue(0);
       } else {
-        double angle = Math.atan2(yAxisProperty.getValue(), xAxisProperty.getValue()) + Math.PI;
-        double radius = Math.sqrt(Math.pow(yAxisProperty.getValue(), 2) + Math.pow(xAxisProperty.getValue(), 2));
+        double angle = Math.atan2(yAxisDeadZoner.getValue(), xAxisDeadZoner.getValue()) + Math.PI;
+        double radius = Math.sqrt(Math.pow(yAxisDeadZoner.getValue(), 2) + Math.pow(xAxisDeadZoner.getValue(), 2));
 
         double l = 0;
         double r = 0;
@@ -153,14 +161,14 @@ public class SkidSteerDriveSystemPane extends SubsystemPane {
       }
     };
 
-    this.xAxisProperty.addListener(listener);
-    this.yAxisProperty.addListener(listener);
+    this.xAxisDeadZoner.addListener(listener);
+    this.yAxisDeadZoner.addListener(listener);
 
-    leftProperty.bind(leftIntuitiveProperty);
-    rightProperty.bind(rightIntuitiveProperty);
+    leftOutputProperty.bind(leftIntuitiveProperty);
+    rightOutputProperty.bind(rightIntuitiveProperty);
 
-    leftIn.YValueProperty().bind(leftProperty);
-    rightIn.YValueProperty().bind(rightProperty);
+    leftIn.YValueProperty().bind(leftOutputProperty);
+    rightIn.YValueProperty().bind(rightOutputProperty);
 
     left.getData().add(leftIn);
     left.getData().add(leftOut);
@@ -175,10 +183,10 @@ public class SkidSteerDriveSystemPane extends SubsystemPane {
     BooleanBinding disableProperty = boundProperty.not();
     
     WControllerCell.Factory controllerCellFactory = new WControllerCell.Factory();
-    xControllerBox.getItems().setAll(WController.controllers.values());
-    yControllerBox.getItems().setAll(WController.controllers.values());
-    lControllerBox.getItems().setAll(WController.controllers.values());
-    rControllerBox.getItems().setAll(WController.controllers.values());
+    xControllerBox.itemsProperty().bind(new ReadOnlyListWrapper<>(WController.wControllerList));
+    yControllerBox.itemsProperty().bind(new ReadOnlyListWrapper<>(WController.wControllerList));
+    lControllerBox.itemsProperty().bind(new ReadOnlyListWrapper<>(WController.wControllerList));
+    rControllerBox.itemsProperty().bind(new ReadOnlyListWrapper<>(WController.wControllerList));
     xControllerBox.setCellFactory(controllerCellFactory);
     yControllerBox.setCellFactory(controllerCellFactory);
     lControllerBox.setCellFactory(controllerCellFactory);
@@ -211,17 +219,34 @@ public class SkidSteerDriveSystemPane extends SubsystemPane {
       mode = Mode.values()[(int) new_val];
       switch(mode) {
         case INTUITIVE:
-          leftProperty.bind(leftIntuitiveProperty);
-          rightProperty.bind(rightIntuitiveProperty);
+          leftOutputProperty.bind(leftIntuitiveProperty);
+          rightOutputProperty.bind(rightIntuitiveProperty);
           break;
         case TANK:
-          leftProperty.bind(lAxisProperty);
-          rightProperty.bind(rAxisProperty);
+          leftOutputProperty.bind(leftTankDeadZoner);
+          rightOutputProperty.bind(rightTankDeadZoner);
           break;
       }
     });
 
     return loader.getRoot();
+  }
+
+  private DoubleExpression createDeadzoner(DoubleExpression in) {
+    SimpleDoubleProperty out = new SimpleDoubleProperty();
+    in.addListener((obs, oldV, newVN) -> {
+      double newV = newVN.doubleValue();
+      if(Math.abs(newV) < 0.05) {
+        out.set(0);
+      } else {
+        if(newV > 0) {
+          out.set((newV - 0.05) * (1.0/0.95));
+        } else {
+          out.set((newV + 0.05) * (1.0/0.95));
+        }
+      }
+    });
+    return out;
   }
 
   @FXML
@@ -244,14 +269,14 @@ public class SkidSteerDriveSystemPane extends SubsystemPane {
   public void xAxisSet(ActionEvent e) {
     xAxisProperty.unbind();
     xAxisComponent = xAxisBox.getValue();
-    xAxisProperty.bind(xAxisComponent.getProperty());
+    xAxisProperty.bind(xAxisComponent.getProperty().multiply(Bindings.when(xReverse.selectedProperty()).then(-1).otherwise(1)));
   }
 
   @FXML
   public void yAxisSet(ActionEvent e) {
     yAxisProperty.unbind();
     yAxisComponent = yAxisBox.getValue();
-    yAxisProperty.bind(yAxisComponent.getProperty());
+    yAxisProperty.bind(yAxisComponent.getProperty().multiply(Bindings.when(yReverse.selectedProperty()).then(-1).otherwise(1)));
   }
 
   @FXML
@@ -272,16 +297,16 @@ public class SkidSteerDriveSystemPane extends SubsystemPane {
 
   @FXML
   public void lAxisSet(ActionEvent e) {
-    lAxisProperty.unbind();
+    leftTankProperty.unbind();
     lAxisComponent = lAxisBox.getValue();
-    lAxisProperty.bind(lAxisComponent.getProperty());
+    leftTankProperty.bind(lAxisComponent.getProperty().multiply(Bindings.when(lReverse.selectedProperty()).then(-1).otherwise(1)));
   }
 
   @FXML
   public void rAxisSet(ActionEvent e) {
-    rAxisProperty.unbind();
+    rightTankProperty.unbind();
     rAxisComponent = rAxisBox.getValue();
-    rAxisProperty.bind(rAxisComponent.getProperty());
+    rightTankProperty.bind(rAxisComponent.getProperty().multiply(Bindings.when(rReverse.selectedProperty()).then(-1).otherwise(1)));
   }
 
   @Override

@@ -3,7 +3,8 @@
 class Robot
   def initialize
     @subsystems = []
-    @batteries = []
+    @sensors = []
+    @drivers = []
     @adapters = {}
   end
 
@@ -11,10 +12,6 @@ class Robot
     @subsystems.push sub
   end
   
-  def add_battery(bat)
-    @batteries.push bat
-  end
-
   def add_adapter(name, adapter)
     @adapters[name] = adapter
   end
@@ -27,6 +24,7 @@ class Robot
   end
 
   attr_reader :subsystems
-  attr_reader :batteries
+  attr_reader :sensors
   attr_reader :adapters
+  attr_reader :drivers
 end

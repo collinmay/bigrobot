@@ -59,20 +59,20 @@ class Driver
     write_packet(0x01, timestamp)
   end
 
-  def send_subsystem_info
+  def send_subsystems
     reports = @robot.subsystems.collect do |sub|
       driver_name = sub.driver == nil ? "" : sub.driver.name
-      sub.numeric_type.chr + pack_str(sub.name) + pack_str(driver_name)
+      header = [sub.numeric_type].pack("C") + pack_str(sub.name) + pack_str(driver_name)
+
+      next header + sub.pack_metadata
     end
     write_packet(0x02, [reports.length].pack("S>") + reports.join(String.new))
   end
 
-  def send_battery_info
-    reports = @robot.batteries.collect do |bat|
-      full = bat.full_voltage * 1000
-      current = bat.current_voltage * 1000
-      name = bat.name
-      next [full, current].pack("l>l>") + pack_str(name)
+  def send_sensors
+    reports = @robot.sensors.collect do |sensor|
+      header = [sensor.numeric_type].pack("l>") + pack_str(sensor.name)
+      next header + sensor.pack_metadata
     end
     write_packet(0x07, [reports.length].pack("S>") + reports.join(String.new))
   end
@@ -84,6 +84,10 @@ class Driver
   
   def send_subsystem_bind_failiure(sub)
     write_packet(0x03, [sub.id].pack("s>"))
+  end
+
+  def send_firmware_info
+    write_packet(0x09, pack_str("robotd") + pack_str($VERSION) + [$PROTOCOL_VERSION].pack("s>"))
   end
   
   def run_input
@@ -101,8 +105,9 @@ class Driver
         end
         send_keepalive(time)
       when 0x02 # query subsystems
-        send_subsystem_info
-        send_battery_info
+        send_sensors
+        send_subsystems
+        send_firmware_info
       when 0x03 # register driver
         @name = recv_str
         @log.prefix = "[#{@name}] "
@@ -110,6 +115,7 @@ class Driver
         sub = @robot.subsystems[@socket.read(2).unpack("s>")[0]]
         if sub.attempt_bind(self) then
           send_subsystem_bind_success sub
+          @subsystems.push(sub)
         else
           send_subsystem_bind_failiure sub
         end
@@ -132,8 +138,8 @@ class Driver
     end
   end
 
-  def subsystem_bound(sub)
-    @subsystems.push(sub)
+  def subsystem_bound(sub, driver)
+    write_packet(0x06, [sub.id].pack("s>") + pack_str(driver.name))
   end
 
   class NetLogger
